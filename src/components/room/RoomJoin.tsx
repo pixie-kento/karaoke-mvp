@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { joinRoomByCode } from '@/lib/room'
 import { useRoomStore } from '@/stores/roomStore'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 export function RoomJoin() {
@@ -13,16 +13,13 @@ export function RoomJoin() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { setCurrentRoom, setIsHost } = useRoomStore()
-  const { toast } = useToast()
 
   const handleJoin = async () => {
     const code = roomCode.trim().toUpperCase()
     
     if (!code || code.length !== 6) {
-      toast({
-        title: 'Invalid room code',
+      toast.error('Invalid room code', {
         description: 'Please enter a 6-character room code',
-        variant: 'destructive',
       })
       return
     }
@@ -31,10 +28,8 @@ export function RoomJoin() {
     const { room, error } = await joinRoomByCode(code)
 
     if (error || !room) {
-      toast({
-        title: 'Failed to join room',
+      toast.error('Failed to join room', {
         description: error || 'Room not found',
-        variant: 'destructive',
       })
       setIsLoading(false)
       return

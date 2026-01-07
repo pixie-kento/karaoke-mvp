@@ -40,7 +40,11 @@ export interface Playlist {
   id: string
   user_id: string
   name: string
+  description?: string | null
+  is_public?: boolean
+  play_count?: number
   created_at: string
+  updated_at?: string
 }
 
 export interface PlaylistSong {
@@ -48,6 +52,8 @@ export interface PlaylistSong {
   playlist_id: string
   video_id: string
   video_title: string
+  video_thumbnail?: string
   position: number
+  created_at?: string
 }
 

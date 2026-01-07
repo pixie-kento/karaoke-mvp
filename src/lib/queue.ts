@@ -106,7 +106,7 @@ export async function markAsPlayed(
  * Reorder queue items
  */
 export async function reorderQueue(
-  roomId: string,
+  _roomId: string,
   updates: { id: string; position: number }[]
 ): Promise<{ error: string | null }> {
   // Update positions in a transaction-like manner

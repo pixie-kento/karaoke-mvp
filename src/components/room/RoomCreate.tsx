@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createRoom } from '@/lib/room'
 import { useRoomStore } from '@/stores/roomStore'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 export function RoomCreate() {
@@ -14,14 +14,11 @@ export function RoomCreate() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { setCurrentRoom, setIsHost } = useRoomStore()
-  const { toast } = useToast()
 
   const handleCreate = async () => {
     if (!roomName.trim()) {
-      toast({
-        title: 'Room name required',
+      toast.error('Room name required', {
         description: 'Please enter a name for your room',
-        variant: 'destructive',
       })
       return
     }
@@ -30,10 +27,8 @@ export function RoomCreate() {
     const { room, error } = await createRoom(roomName.trim(), roomType)
 
     if (error || !room) {
-      toast({
-        title: 'Failed to create room',
+      toast.error('Failed to create room', {
         description: error || 'Unknown error occurred',
-        variant: 'destructive',
       })
       setIsLoading(false)
       return
