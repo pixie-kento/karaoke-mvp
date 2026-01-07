@@ -75,26 +75,33 @@ ALTER TABLE playlists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE playlist_songs ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for users
+DROP POLICY IF EXISTS "Users can view all users" ON users;
 CREATE POLICY "Users can view all users" ON users
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can insert their own user" ON users;
 CREATE POLICY "Users can insert their own user" ON users
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can update their own user" ON users;
 CREATE POLICY "Users can update their own user" ON users
   FOR UPDATE USING (true);
 
 -- RLS Policies for rooms
+DROP POLICY IF EXISTS "Anyone can view active rooms" ON rooms;
 CREATE POLICY "Anyone can view active rooms" ON rooms
   FOR SELECT USING (is_active = true);
 
+DROP POLICY IF EXISTS "Anyone can create rooms" ON rooms;
 CREATE POLICY "Anyone can create rooms" ON rooms
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Room hosts can update their rooms" ON rooms;
 CREATE POLICY "Room hosts can update their rooms" ON rooms
   FOR UPDATE USING (true);
 
 -- RLS Policies for queue_items
+DROP POLICY IF EXISTS "Anyone can view queue items for active rooms" ON queue_items;
 CREATE POLICY "Anyone can view queue items for active rooms" ON queue_items
   FOR SELECT USING (
     EXISTS (
@@ -104,6 +111,7 @@ CREATE POLICY "Anyone can view queue items for active rooms" ON queue_items
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can add to queue for active rooms" ON queue_items;
 CREATE POLICY "Anyone can add to queue for active rooms" ON queue_items
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -113,6 +121,7 @@ CREATE POLICY "Anyone can add to queue for active rooms" ON queue_items
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can update queue items for active rooms" ON queue_items;
 CREATE POLICY "Anyone can update queue items for active rooms" ON queue_items
   FOR UPDATE USING (
     EXISTS (
@@ -122,6 +131,7 @@ CREATE POLICY "Anyone can update queue items for active rooms" ON queue_items
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can delete queue items for active rooms" ON queue_items;
 CREATE POLICY "Anyone can delete queue items for active rooms" ON queue_items
   FOR DELETE USING (
     EXISTS (
@@ -132,19 +142,24 @@ CREATE POLICY "Anyone can delete queue items for active rooms" ON queue_items
   );
 
 -- RLS Policies for playlists
+DROP POLICY IF EXISTS "Users can view their own playlists" ON playlists;
 CREATE POLICY "Users can view their own playlists" ON playlists
   FOR SELECT USING (auth.uid()::text = user_id::text OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "Users can create their own playlists" ON playlists;
 CREATE POLICY "Users can create their own playlists" ON playlists
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can update their own playlists" ON playlists;
 CREATE POLICY "Users can update their own playlists" ON playlists
   FOR UPDATE USING (auth.uid()::text = user_id::text OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "Users can delete their own playlists" ON playlists;
 CREATE POLICY "Users can delete their own playlists" ON playlists
   FOR DELETE USING (auth.uid()::text = user_id::text OR user_id IS NULL);
 
 -- RLS Policies for playlist_songs
+DROP POLICY IF EXISTS "Users can view songs in their playlists" ON playlist_songs;
 CREATE POLICY "Users can view songs in their playlists" ON playlist_songs
   FOR SELECT USING (
     EXISTS (
@@ -154,6 +169,7 @@ CREATE POLICY "Users can view songs in their playlists" ON playlist_songs
     )
   );
 
+DROP POLICY IF EXISTS "Users can add songs to their playlists" ON playlist_songs;
 CREATE POLICY "Users can add songs to their playlists" ON playlist_songs
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -163,6 +179,7 @@ CREATE POLICY "Users can add songs to their playlists" ON playlist_songs
     )
   );
 
+DROP POLICY IF EXISTS "Users can update songs in their playlists" ON playlist_songs;
 CREATE POLICY "Users can update songs in their playlists" ON playlist_songs
   FOR UPDATE USING (
     EXISTS (
@@ -172,6 +189,7 @@ CREATE POLICY "Users can update songs in their playlists" ON playlist_songs
     )
   );
 
+DROP POLICY IF EXISTS "Users can delete songs from their playlists" ON playlist_songs;
 CREATE POLICY "Users can delete songs from their playlists" ON playlist_songs
   FOR DELETE USING (
     EXISTS (
@@ -182,5 +200,15 @@ CREATE POLICY "Users can delete songs from their playlists" ON playlist_songs
   );
 
 -- Enable real-time for queue_items
-ALTER PUBLICATION supabase_realtime ADD TABLE queue_items;
+-- Note: This may fail if already added, but that's okay
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND tablename = 'queue_items'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE queue_items;
+  END IF;
+END $$;
 
